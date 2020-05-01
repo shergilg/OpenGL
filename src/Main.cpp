@@ -122,6 +122,10 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
@@ -132,6 +136,8 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+
+    glfwSwapInterval(1);
 
     if (GLEW_OK != glewInit())
     {
@@ -155,16 +161,21 @@ int main(void)
         2, 3, 0
     };
 
+    /*Create VAO(Vertex Array object)*/
+    unsigned int VAO;
+    GLCall(glGenVertexArrays(1, &VAO));
+    GLCall(glBindVertexArray(VAO));
+
 
     /*This is the code to give opengl the data*/
     unsigned int buffer;/*Define a buffer*/
     GLCall(glGenBuffers(1, &buffer)); /*Think of a buffer as an ID (like an ID for a state in a state machine*/
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); /*What kind of buffer we want and and where we binding that*/
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
 
     /*Layout of the buffer*/
     GLCall(glEnableVertexAttribArray(0));
-    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, nullptr));
+    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, nullptr));//This line links the buffer with the VAO at index 0
 
     unsigned int ibo; /*Define index buffer object*/
     GLCall(glGenBuffers(1, &ibo));
@@ -176,8 +187,17 @@ int main(void)
     GLCall(glUseProgram(shader)); /*Binding the shader*/
 
     int location = glGetUniformLocation(shader, "u_Color"); /*Get the location of the uniform by name*/
-    ASSERT(location != -1); /*Check to see if it is being used*/
-    glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f); /*Set the values to the uniform*/
+    GLCall(ASSERT(location != -1)); /*Check to see if it is being used*/
+    GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f)); /*Set the values to the uniform*/
+
+    /*Unbinding everthing*/
+    GLCall(glBindVertexArray(0));
+    GLCall(glUseProgram(0));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+    float r = 0.0f;
+    float increment = 0.05f;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -185,9 +205,25 @@ int main(void)
         /* Render here */
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
+        /*Calling these again because we unbinded these*/
+        GLCall(glUseProgram(shader));
+        GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));/*Upadte the color overtime*/
+        
+        GLCall(glBindVertexArray(VAO));
+
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+
+
+        
+
         //glDrawArrays(GL_TRIANGLES, 0, 6);/*(What are we drawing, the starting point, and the number of vertrices)*/
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));/*Draw call to draw our trianles using index buffer*/
 
+        if (r > 1.0f)
+            increment = -0.05f;
+        else if (r < 0.0f)
+            increment = 0.05f;
+        r += increment;
 
         /* Swap front and back buffers */
         GLCall(glfwSwapBuffers(window));
