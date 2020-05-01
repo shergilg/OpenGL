@@ -6,23 +6,34 @@ int main()
 	std::cin.get();
 }*/
 
-#include <iostream>
+
+/*Include statements*/
+#include <iostream> 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <string>
 #include <sstream>
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*Assert to make sure the code breaks and doesn't continue after it fails()*/
 #define ASSERT(x) if (!(x)) __debugbreak();
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*This make checks if there are errors for the function(x)*/
+/*If there are any errors it check for them and give the code for the error*/
+/*Not that reliable*/
 #define GLCall(x) GLClearError();\
     x;\
     ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*This make sures that there are no errors*/
 static void GLClearError()
 {
     while (glGetError() != GL_NO_ERROR);
 }
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*Since ''glGetError'' should only be used inside the loop we check if theres an error*/
+/*But ''glGetError'' doesn't specify which function, line caused the error or where the error was since it only returns the error code*/
+/*We pass in the function, file isn't as important but tells which file contains the function, and the line to tell which line has the function in the file*/
 static bool GLLogCall(const char* function, const char* file, int line)
 {
     while (GLenum error = glGetError())
@@ -33,13 +44,17 @@ static bool GLLogCall(const char* function, const char* file, int line)
     }
     return true;
 }
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*Struct: more than one variable to represent an object*/
+/*This represents source for the vertex and fragment shader files*/
 struct ShaderProgramSource
 {
     std::string VertexSource;
     std::string FragmentSource;
 };
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*Since we put both shaders in one file this just accepts that file and seperates both shader*/
+/*We create enum class which is helps us to seprate each shader store them*/
 static ShaderProgramSource ParseShader(const std::string& filePath)
 {
     std::ifstream stream(filePath);
@@ -70,20 +85,23 @@ static ShaderProgramSource ParseShader(const std::string& filePath)
 
     return { ss[0].str(), ss[1].str() };
 }
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*Compiles shader accepting type(Which is built in OpenGL) and the source for that shader*/
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
     unsigned int id = glCreateShader(type);
     const char* src = source.c_str(); /*Pointer to the beginning of our data(Very first character in the string*/
     GLCall(glShaderSource(id, 1, &src, nullptr)); /*(shader, how many source codes we want, pointer to the pointer(to the string containing the source code, length)*/
-    GLCall(glCompileShader(id));
+    GLCall(glCompileShader(id)); /*Compiles the source code strings stored in the shader*/
 
     int result;
-    GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
+    /*Checking if the shader actually compiles*/
+    GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));/*Returns parameter from a shader object(stored as 'int' in ''result'')*/
+    /*Incase it doesn't, we write to the console which shader didn't compile*/
     if (result == GL_FALSE)
     {
         int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);/*(Shader, Parameter name(OpenGL specified), the address of the parameter)*/
         char* message = (char*)_malloca(length * sizeof(char));
         glGetShaderInfoLog(id, length, &length, message);
         std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
@@ -92,11 +110,10 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
         glDeleteShader(id);
         return 0;
     }
-
-
-    return id;
+    return id;/*Return the compiled shader*/
 }
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*We create program and attach both if the shaders after compiling and return the program*/
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
     unsigned int program = glCreateProgram();
@@ -113,7 +130,8 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 
     return program;
 }
-
+/*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*Main Program*/
 int main(void)
 {
     GLFWwindow* window;
