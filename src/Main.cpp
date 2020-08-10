@@ -22,6 +22,7 @@ int main()
 #include "VertexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 /*Main Program*/
@@ -61,10 +62,10 @@ int main(void)
     {
         /*creating the buffer data*/
         float positions[] = { /*You can also call this a buffer*/
-            -0.5f, -0.5f, /*index 0*/
-             0.5f, -0.5f, /*index 1*/
-             0.5f,  0.5f, /*index 2*/
-            -0.5f,  0.5f, /*index 3*/
+            -0.5f, -0.5f, 0.0f, 0.0f,/*index 0*/
+             0.5f, -0.5f, 1.0f, 0.0f,/*index 1*/
+             0.5f,  0.5f, 1.0f, 1.0f,/*index 2*/
+            -0.5f,  0.5f, 0.0f, 1.0f/*index 3*/
         };
 
         /*Creating index buffer*/
@@ -73,6 +74,9 @@ int main(void)
             2, 3, 0
         };
 
+        GLCall(glEnable(GL_BLEND));
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        
         /*Create VAO(Vertex Array object)*/
         unsigned int VAO;
         GLCall(glGenVertexArrays(1, &VAO));
@@ -80,10 +84,11 @@ int main(void)
 
 
         VertexArray va;
-        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
         //making vertex buffer layout
         VertexBufferLayout layout;
+        layout.Push<float>(2);
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
@@ -94,6 +99,11 @@ int main(void)
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+
+        Texture texture("res/textures/kTjDnJ8.jpg");
+        texture.Bind();
+        shader.SetUniform1i("u_Texture", 0);
+
 
         /*Unbinding everthing*/
         va.Unbind();
