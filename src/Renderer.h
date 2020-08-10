@@ -1,5 +1,10 @@
 #pragma once
 #include <GL/glew.h>
+
+#include "VertexArray.h"
+#include "IndexBuffer.h"
+#include "Shader.h"
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 /*Assert to make sure the code breaks and doesn't continue after it fails()*/
 #define ASSERT(x) if (!(x)) __debugbreak();
@@ -19,4 +24,11 @@ void GLClearError();
 /*But ''glGetError'' doesn't specify which function, line caused the error or where the error was since it only returns the error code*/
 /*We pass in the function, file isn't as important but tells which file contains the function, and the line to tell which line has the function in the file*/
 bool GLLogCall(const char* function, const char* file, int line);
+
+class Renderer
+{
+public:
+    void Clear() const;
+    void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+};
 

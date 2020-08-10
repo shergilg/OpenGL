@@ -18,6 +18,7 @@ int main()
 
 #include "Renderer.h"
 #include "IndexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "VertexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
@@ -100,25 +101,20 @@ int main(void)
         vb.Unbind();
         ib.Unbind();
 
+        Renderer renderer;
+
         float r = 0.0f;
         float increment = 0.05f;
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
-            /* Render here */
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            renderer.Clear();
 
-            /*Calling these again because we unbinded these*/
             shader.Bind();
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
 
-            va.Bind();
-
-            ib.Bind();
-
-            //glDrawArrays(GL_TRIANGLES, 0, 6);/*(What are we drawing, the starting point, and the number of vertrices)*/
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));/*Draw call to draw our trianles using index buffer*/
+            renderer.Draw(va, ib, shader);
 
             if (r > 1.0f)
                 increment = -0.05f;
@@ -127,10 +123,10 @@ int main(void)
             r += increment;
 
             /* Swap front and back buffers */
-            GLCall(glfwSwapBuffers(window));
+            glfwSwapBuffers(window);
 
             /* Poll for and process events */
-            GLCall(glfwPollEvents());
+            glfwPollEvents();
         }
     }
     glfwTerminate();
